@@ -137,7 +137,7 @@ export default function HomePage() {
           <FeatureCard
             icon={<BoltIcon />}
             title="Acts"
-            desc="Executes spot swaps, opens/closes perp positions, and claims Meteora LP fees via Jupiter."
+            desc="Executes spot swaps, opens/closes perp positions, claims Meteora LP fees, and distributes SOL to token holders."
             wonky="wonky-3"
           />
           <FeatureCard
@@ -159,7 +159,7 @@ export default function HomePage() {
               <StepCard num="2" title="Portfolio Tracking" desc="Reads on-chain wallet balances, token accounts, perp positions, and LP positions. Snapshots are saved to PostgreSQL every cycle." />
               <StepCard num="3" title="AI Decision Engine" desc="Claude receives a structured prompt with portfolio, market, and risk data. It returns a JSON decision: HOLD, SPOT_SWAP, OPEN_PERP, CLOSE_PERP, or ADD_LIQUIDITY." />
               <StepCard num="4" title="Risk Gate" desc="Every decision passes through 6 risk rules before execution. If any rule trips — position too large, daily loss exceeded, etc. — the trade is blocked." />
-              <StepCard num="5" title="Execution" desc="Approved trades execute via Jupiter (swaps + perps) and Meteora (LP fee claims) with on-chain transaction signatures." />
+              <StepCard num="5" title="Execution" desc="Approved trades execute via Jupiter (swaps + perps) and Meteora (LP fee claims). 50% of claimed fees are distributed to AMG token holders." />
               <StepCard num="6" title="Logging" desc="Every decision, trade, risk event, and portfolio snapshot is stored in PostgreSQL and visible on the live dashboard." />
             </div>
           </div>
@@ -204,6 +204,11 @@ export default function HomePage() {
             <div className="text-center">
               <p className="font-hand text-3xl font-bold">24/7</p>
               <p className="text-ink-lighter text-xs mt-1">Autonomous</p>
+            </div>
+            <div className="w-px bg-ink-faint" />
+            <div className="text-center">
+              <p className="font-hand text-3xl font-bold">50%</p>
+              <p className="text-ink-lighter text-xs mt-1">Fees to Holders</p>
             </div>
             <div className="w-px bg-ink-faint" />
             <div className="text-center">

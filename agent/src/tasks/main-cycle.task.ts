@@ -13,6 +13,7 @@ const SVC = {
   RISK: "risk",
   JUPITER: "jupiter",
   METEORA: "meteora",
+  DISTRIBUTION: "distribution",
   DATABASE: "amg_database",
 } as const;
 
@@ -69,6 +70,52 @@ export const mainCycleWorker: TaskWorker = {
           }
         } catch (err) {
           log.error({ err }, "Fee claiming failed, continuing cycle");
+        }
+
+        // Step 1b: Run distribution to AMG holders
+        log.info("Step 1b: Running distribution to token holders...");
+        try {
+          const distributionService = runtime.getService(SVC.DISTRIBUTION) as any;
+          const dbService = runtime.getService(SVC.DATABASE) as any;
+          if (distributionService?.isConfigured()) {
+            const result = await distributionService.runDistribution();
+            if (result && dbService) {
+              // Record distribution in DB
+              try {
+                const [distRecord] = await dbService.distributions.insert({
+                  totalSolDistributed: result.totalDistributed,
+                  totalRecipients: result.totalRecipients,
+                  distroBalanceBefore: result.balanceBefore,
+                  distroBalanceAfter: result.balanceAfter,
+                  status: result.recipients.some((r: any) => !r.success) ? "failed" : "completed",
+                  txSignatures: result.txSignatures,
+                  error: result.recipients.some((r: any) => !r.success) ? `${result.recipients.filter((r: any) => !r.success).length} failed` : null,
+                });
+                // Record recipients
+                const recipientRows = result.recipients.map((r: any) => ({
+                  distributionId: distRecord.id,
+                  recipientWallet: r.wallet,
+                  tokenBalance: 0,
+                  tokenSharePct: 0,
+                  solAmount: r.solAmount,
+                  txSignature: r.txSignature,
+                  status: r.success ? "sent" : "failed",
+                }));
+                if (recipientRows.length > 0) {
+                  await dbService.distributionRecipients.insertMany(recipientRows);
+                }
+                log.info({ id: distRecord.id, recipients: result.totalRecipients, sol: result.totalDistributed }, "Distribution recorded");
+              } catch (dbErr) {
+                log.error({ err: dbErr }, "Failed to record distribution in DB");
+              }
+            } else if (!result) {
+              log.info("No distribution needed (balance below reserve or no holders)");
+            }
+          } else {
+            log.info("Distribution service not configured, skipping");
+          }
+        } catch (err) {
+          log.error({ err }, "Distribution failed, continuing cycle");
         }
       } else {
         log.info("Step 1: Fee claim not due yet, skipping");

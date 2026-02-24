@@ -14,6 +14,7 @@ type OverviewData = {
   pnlToday: number;
   openPositions: number;
   totalFeesClaimed: number;
+  totalSolDistributed: number;
 };
 
 function fmt(n: number, decimals = 2) {
@@ -46,8 +47,8 @@ export function KpiCards() {
 
   if (!data) {
     return (
-      <div className="grid grid-cols-5 gap-4">
-        {Array.from({ length: 5 }).map((_, i) => (
+      <div className="grid grid-cols-3 md:grid-cols-6 gap-4">
+        {Array.from({ length: 6 }).map((_, i) => (
           <div key={i} className="sketch-border-light bg-paper p-4 h-24 animate-pulse" />
         ))}
       </div>
@@ -58,7 +59,7 @@ export function KpiCards() {
   const pnlColor = (pnlPct ?? 0) >= 0 ? "text-green" : "text-red";
 
   return (
-    <div className="grid grid-cols-5 gap-4">
+    <div className="grid grid-cols-3 md:grid-cols-6 gap-4">
       <Card
         label="Portfolio Value"
         value={`$${fmt(data.snapshot?.total_portfolio_value ?? 0)}`}
@@ -82,6 +83,12 @@ export function KpiCards() {
       <Card
         label="Fees Claimed"
         value={`$${fmt(data.totalFeesClaimed)}`}
+      />
+      <Card
+        label="SOL Distributed"
+        value={`${fmt(data.totalSolDistributed ?? 0, 4)}`}
+        sub="to holders"
+        color="text-green"
       />
     </div>
   );

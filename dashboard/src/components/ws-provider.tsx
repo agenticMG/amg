@@ -15,6 +15,7 @@ type UpdateData = {
   risk_events: Record<string, unknown>[];
   fee_claims: Record<string, unknown>[];
   snapshots: Record<string, unknown>[];
+  distributions: Record<string, unknown>[];
 };
 
 type WsContextType = {
@@ -67,6 +68,7 @@ export function WsProvider({ children }: { children: ReactNode }) {
             risk: String(ids.risk),
             fees: String(ids.fees),
             snapshots: String(ids.snapshots),
+            distributions: String(ids.distributions),
           });
           const res = await fetch(`/api/updates?${params}`);
           if (!active) return;
@@ -85,13 +87,15 @@ export function WsProvider({ children }: { children: ReactNode }) {
           if (data.risk_events.length) ids.risk = maxId(data.risk_events);
           if (data.fee_claims.length) ids.fees = maxId(data.fee_claims);
           if (data.snapshots.length) ids.snapshots = maxId(data.snapshots);
+          if (data.distributions?.length) ids.distributions = maxId(data.distributions);
 
           const hasNew =
             data.trades.length > 0 ||
             data.decisions.length > 0 ||
             data.risk_events.length > 0 ||
             data.fee_claims.length > 0 ||
-            data.snapshots.length > 0;
+            data.snapshots.length > 0 ||
+            (data.distributions?.length ?? 0) > 0;
           if (hasNew) setUpdate(data);
         } catch {
           if (active) setConnected(false);

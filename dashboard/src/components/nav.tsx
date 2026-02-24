@@ -10,6 +10,7 @@ const links = [
   { href: "/dashboard/positions", label: "Positions", icon: "%" },
   { href: "/dashboard/decisions", label: "Decisions", icon: "?" },
   { href: "/dashboard/fees", label: "Fees", icon: "+" },
+  { href: "/dashboard/distributions", label: "Distributions", icon: ">" },
   { href: "/dashboard/risk", label: "Risk", icon: "!" },
 ];
 

@@ -14,7 +14,8 @@ export async function GET(req: NextRequest) {
         (SELECT COALESCE(MAX(id), 0) FROM agent_decisions) AS decisions,
         (SELECT COALESCE(MAX(id), 0) FROM risk_events) AS risk,
         (SELECT COALESCE(MAX(id), 0) FROM fee_claims) AS fees,
-        (SELECT COALESCE(MAX(id), 0) FROM portfolio_snapshots) AS snapshots
+        (SELECT COALESCE(MAX(id), 0) FROM portfolio_snapshots) AS snapshots,
+        (SELECT COALESCE(MAX(id), 0) FROM distributions) AS distributions
     `;
     return NextResponse.json({ seed: row });
   }
@@ -25,14 +26,16 @@ export async function GET(req: NextRequest) {
   const risk = parseInt(params.get("risk") || "0", 10);
   const fees = parseInt(params.get("fees") || "0", 10);
   const snapshots = parseInt(params.get("snapshots") || "0", 10);
+  const distros = parseInt(params.get("distributions") || "0", 10);
 
-  const [newTrades, newDecisions, newRisk, newFees, newSnapshots] =
+  const [newTrades, newDecisions, newRisk, newFees, newSnapshots, newDistros] =
     await Promise.all([
       sql`SELECT * FROM trades WHERE id > ${trades} ORDER BY id DESC LIMIT 50`,
       sql`SELECT * FROM agent_decisions WHERE id > ${decisions} ORDER BY id DESC LIMIT 50`,
       sql`SELECT * FROM risk_events WHERE id > ${risk} ORDER BY id DESC LIMIT 50`,
       sql`SELECT * FROM fee_claims WHERE id > ${fees} ORDER BY id DESC LIMIT 50`,
       sql`SELECT * FROM portfolio_snapshots WHERE id > ${snapshots} ORDER BY id DESC LIMIT 50`,
+      sql`SELECT * FROM distributions WHERE id > ${distros} ORDER BY id DESC LIMIT 50`,
     ]);
 
   return NextResponse.json({
@@ -41,5 +44,6 @@ export async function GET(req: NextRequest) {
     risk_events: newRisk,
     fee_claims: newFees,
     snapshots: newSnapshots,
+    distributions: newDistros,
   });
 }
