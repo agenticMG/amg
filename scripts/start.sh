@@ -14,7 +14,7 @@ fi
 
 # Ensure infrastructure is up
 echo "Starting infrastructure..."
-docker compose up -d postgres grafana
+docker compose up -d postgres
 echo "Waiting for PostgreSQL..."
 until docker exec amg-postgres pg_isready -U amg -d amg -q 2>/dev/null; do
   sleep 1
