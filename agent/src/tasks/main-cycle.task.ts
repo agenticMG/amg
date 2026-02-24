@@ -24,7 +24,7 @@ export const mainCycleWorker: TaskWorker = {
     const startTime = Date.now();
     log.info("=== AMG Main Cycle Starting ===");
 
-    const dryRun = runtime.getSetting("DRY_RUN") !== "false";
+    const dryRun = runtime.getSetting("DRY_RUN") !== false;
     if (dryRun) log.info("[DRY_RUN] Running in dry-run mode");
 
     try {

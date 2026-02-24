@@ -1,0 +1,16 @@
+{
+  "/_not-found/page": "/_not-found",
+  "/api/portfolio-history/route": "/api/portfolio-history",
+  "/api/overview/route": "/api/overview",
+  "/api/risk/route": "/api/risk",
+  "/api/trades/route": "/api/trades",
+  "/api/fees/route": "/api/fees",
+  "/api/positions/route": "/api/positions",
+  "/api/decisions/route": "/api/decisions",
+  "/decisions/page": "/decisions",
+  "/fees/page": "/fees",
+  "/page": "/",
+  "/positions/page": "/positions",
+  "/trades/page": "/trades",
+  "/risk/page": "/risk"
+}

@@ -33,20 +33,15 @@ services:
         condition: service_healthy
     restart: unless-stopped
 
-  grafana:
-    image: grafana/grafana:11.4.0
-    container_name: amg-grafana
-    environment:
-      GF_SECURITY_ADMIN_USER: admin
-      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:-amg_admin}
-      GF_SERVER_HTTP_PORT: 3001
-      GF_USERS_ALLOW_SIGN_UP: "false"
+  dashboard:
+    build:
+      context: ./dashboard
+      dockerfile: Dockerfile
+    container_name: amg-dashboard
     ports:
-      - "${GRAFANA_PORT:-3001}:3001"
-    volumes:
-      - ./config/grafana/provisioning:/etc/grafana/provisioning
-      - ./config/grafana/dashboards:/var/lib/grafana/dashboards
-      - grafana_data:/var/lib/grafana
+      - "3001:3001"
+    environment:
+      - DATABASE_URL=postgresql://amg:amg_password@postgres:5432/amg
     depends_on:
       postgres:
         condition: service_healthy
@@ -54,4 +49,3 @@ services:
 
 volumes:
   pgdata:
-  grafana_data:

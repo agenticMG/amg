@@ -40,7 +40,7 @@ export class JupiterService extends Service {
 
     const apiKey = runtime.getSetting("JUPITER_API_KEY") as string || "86a2564b-34e7-47a9-b6ba-6d99852ea252";
     const ultraUrl = runtime.getSetting("JUPITER_ULTRA_URL") as string || "https://api.jup.ag/ultra/v1";
-    const dryRun = runtime.getSetting("DRY_RUN") !== "false";
+    const dryRun = runtime.getSetting("DRY_RUN") !== false;
 
     service.swapService = new JupiterSwapService(connection, wallet, apiKey, ultraUrl, dryRun);
     service.perpsService = new JupiterPerpsService(connection, wallet, dryRun);

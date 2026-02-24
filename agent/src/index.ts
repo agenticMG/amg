@@ -28,7 +28,7 @@ const amgAgent: ProjectAgent = {
 
     runtime.registerTaskWorker(mainCycleWorker);
 
-    const dryRun = runtime.getSetting("DRY_RUN") !== "false";
+    const dryRun = runtime.getSetting("DRY_RUN") !== false;
     const cycleIntervalMs = Number(runtime.getSetting("CYCLE_INTERVAL_MS") || 300_000);
     log.info({ dryRun, cycleIntervalMs }, "AMG Agent is running");
 

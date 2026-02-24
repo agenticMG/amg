@@ -147,6 +147,25 @@ docker compose up -d
 
 The agent starts in **DRY_RUN mode** by default — it will analyze markets and make decisions but won't execute any transactions. Set `DRY_RUN=false` in `.env` when you're ready to go live.
 
+### Running the Agent
+
+```bash
+# Start everything (infra + agent)
+./scripts/start.sh
+
+# Stop the agent
+./scripts/stop.sh
+
+# Restart the agent
+./scripts/restart.sh
+
+# Check status + latest decision
+./scripts/status.sh
+
+# Watch live logs
+tail -f amg-agent.log
+```
+
 ### Access
 
 | Service | URL |
@@ -155,20 +174,37 @@ The agent starts in **DRY_RUN mode** by default — it will analyze markets and 
 | Grafana | `http://localhost:3001` (admin / amg_admin) |
 | PostgreSQL | `localhost:5432` (amg / amg_password) |
 
+### Querying the Database
+
+```bash
+# Last 5 decisions
+docker exec amg-postgres psql -U amg -d amg -c \
+  "SELECT timestamp, action, confidence, dry_run FROM agent_decisions ORDER BY timestamp DESC LIMIT 5;"
+
+# Portfolio snapshots
+docker exec amg-postgres psql -U amg -d amg -c \
+  "SELECT * FROM portfolio_snapshots ORDER BY timestamp DESC LIMIT 3;"
+
+# Trades
+docker exec amg-postgres psql -U amg -d amg -c \
+  "SELECT * FROM trades ORDER BY timestamp DESC LIMIT 10;"
+
+# Risk events
+docker exec amg-postgres psql -U amg -d amg -c \
+  "SELECT * FROM risk_events ORDER BY timestamp DESC LIMIT 10;"
+```
+
 ### Development
 
 ```bash
 # Start just PostgreSQL
 docker compose up -d postgres
 
-# Run agent in dev mode (DRY_RUN=true)
-bun run dev
+# Run agent in dev mode (DRY_RUN=true, foreground)
+./scripts/dev.sh
 
 # Build all packages
 bun run build
-
-# Health check
-./scripts/health-check.sh
 ```
 
 ---

@@ -31,7 +31,7 @@ export class MeteoraService extends Service {
     if (poolAddr) service.poolAddress = new PublicKey(poolAddr);
     if (posAddr) service.positionAddress = new PublicKey(posAddr);
 
-    service.dryRun = runtime.getSetting("DRY_RUN") !== "false";
+    service.dryRun = runtime.getSetting("DRY_RUN") !== false;
 
     if (!poolAddr) {
       log.warn("No METEORA_POOL_ADDRESS configured, fee claiming disabled");

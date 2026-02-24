@@ -13,7 +13,7 @@ export const perpMonitorWorker: TaskWorker = {
       return;
     }
 
-    const dryRun = runtime.getSetting("DRY_RUN") !== "false";
+    const dryRun = runtime.getSetting("DRY_RUN") !== false;
     const stopLossPct = Number(runtime.getSetting("PERP_STOP_LOSS_PCT") || 0.05);
 
     try {
