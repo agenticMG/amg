@@ -1,0 +1,27 @@
+{
+  "name": "agent",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "src/index.ts",
+  "scripts": {
+    "build": "tsup src/index.ts --format esm",
+    "dev": "bun run src/index.ts",
+    "start": "bun run dist/index.js"
+  },
+  "dependencies": {
+    "@elizaos/core": "^1.7.2",
+    "@elizaos/plugin-sql": "^1.7.2",
+    "@amg/shared": "workspace:*",
+    "@amg/plugin-portfolio-tracker": "workspace:*",
+    "@amg/plugin-market-intelligence": "workspace:*",
+    "@amg/plugin-jupiter-trader": "workspace:*",
+    "@amg/plugin-meteora-fees": "workspace:*",
+    "@amg/plugin-risk-manager": "workspace:*",
+    "@anthropic-ai/sdk": "^0.39.0"
+  },
+  "devDependencies": {
+    "tsup": "^8.3.0",
+    "typescript": "^5.7.0"
+  }
+}

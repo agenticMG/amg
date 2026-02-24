@@ -1,0 +1,19 @@
+{
+  "name": "@amg/plugin-risk-manager",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "scripts": {
+    "build": "tsup src/index.ts --format esm"
+  },
+  "dependencies": {
+    "@amg/shared": "workspace:*",
+    "@elizaos/core": "^1.7.2"
+  },
+  "devDependencies": {
+    "tsup": "^8.3.0",
+    "typescript": "^5.7.0"
+  }
+}

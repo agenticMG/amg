@@ -1,0 +1,28 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "ES2022",
+    "moduleResolution": "bundler",
+    "lib": ["ES2022"],
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true,
+    "declaration": true,
+    "declarationMap": true,
+    "sourceMap": true,
+    "outDir": "dist",
+    "baseUrl": ".",
+    "paths": {
+      "@amg/shared": ["packages/shared/src"],
+      "@amg/shared/*": ["packages/shared/src/*"],
+      "@amg/plugin-portfolio-tracker": ["packages/plugin-portfolio-tracker/src"],
+      "@amg/plugin-market-intelligence": ["packages/plugin-market-intelligence/src"],
+      "@amg/plugin-jupiter-trader": ["packages/plugin-jupiter-trader/src"],
+      "@amg/plugin-meteora-fees": ["packages/plugin-meteora-fees/src"],
+      "@amg/plugin-risk-manager": ["packages/plugin-risk-manager/src"]
+    }
+  },
+  "exclude": ["node_modules", "dist"]
+}
