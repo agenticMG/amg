@@ -1,1 +1,91 @@
+@import url('https://fonts.googleapis.com/css2?family=Caveat:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
 @import "tailwindcss";
+
+@theme {
+  --font-hand: 'Caveat', cursive;
+  --font-sans: 'Inter', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+
+  --color-cream: #faf8f5;
+  --color-cream-dark: #f0ece5;
+  --color-ink: #1a1a1a;
+  --color-ink-light: #555;
+  --color-ink-lighter: #888;
+  --color-ink-faint: #ccc;
+  --color-paper: #ffffff;
+  --color-accent: #2563eb;
+  --color-accent-light: #dbeafe;
+  --color-green: #16a34a;
+  --color-green-light: #dcfce7;
+  --color-red: #dc2626;
+  --color-red-light: #fee2e2;
+  --color-yellow: #ca8a04;
+  --color-yellow-light: #fef9c3;
+}
+
+/* Sketchy border utility */
+.sketch-border {
+  border: 2px solid var(--color-ink);
+  border-radius: 3px 8px 5px 10px;
+  box-shadow: 2px 2px 0px var(--color-ink);
+}
+
+.sketch-border-light {
+  border: 1.5px solid var(--color-ink-faint);
+  border-radius: 3px 8px 5px 10px;
+}
+
+.sketch-border-accent {
+  border: 2px solid var(--color-accent);
+  border-radius: 3px 8px 5px 10px;
+  box-shadow: 2px 2px 0px var(--color-accent);
+}
+
+/* Wonky card hover */
+.sketch-card {
+  border: 2px solid var(--color-ink);
+  border-radius: 3px 8px 5px 10px;
+  box-shadow: 3px 3px 0px var(--color-ink);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.sketch-card:hover {
+  transform: translate(-1px, -1px);
+  box-shadow: 5px 5px 0px var(--color-ink);
+}
+
+/* Squiggly underline for hand-drawn feel */
+.squiggly {
+  text-decoration: underline;
+  text-decoration-style: wavy;
+  text-decoration-color: var(--color-accent);
+  text-underline-offset: 4px;
+}
+
+/* Marker highlight */
+.marker-highlight {
+  background: linear-gradient(180deg, transparent 60%, #fef08a 60%);
+  padding: 0 4px;
+}
+
+/* Slight rotation for playful feel */
+.wonky-1 { transform: rotate(-1deg); }
+.wonky-2 { transform: rotate(0.5deg); }
+.wonky-3 { transform: rotate(-0.5deg); }
+
+/* Dashed separator */
+.sketch-divider {
+  border-top: 2px dashed var(--color-ink-faint);
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: var(--color-cream);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-ink-faint);
+  border-radius: 10px;
+}

@@ -32,7 +32,7 @@ export function RiskTable() {
     <div className="overflow-x-auto">
       <table className="w-full text-sm">
         <thead>
-          <tr className="text-left text-xs text-zinc-500 uppercase tracking-wider border-b border-zinc-800">
+          <tr className="text-left text-xs text-ink-lighter uppercase tracking-wider border-b-2 border-dashed border-ink-faint">
             <th className="pb-2 pr-4">Time</th>
             <th className="pb-2 pr-4">Rule</th>
             <th className="pb-2 pr-4">Triggered</th>
@@ -44,32 +44,28 @@ export function RiskTable() {
         </thead>
         <tbody>
           {events.map((e) => (
-            <tr key={e.id} className="border-b border-zinc-800/50 hover:bg-zinc-800/30">
-              <td className="py-2 pr-4 font-mono text-xs text-zinc-400">
+            <tr key={e.id} className="border-b border-dashed border-ink-faint/50 hover:bg-cream-dark/50">
+              <td className="py-2 pr-4 font-mono text-xs text-ink-lighter">
                 {new Date(e.timestamp).toLocaleString()}
               </td>
               <td className="py-2 pr-4">
-                <span className="px-2 py-0.5 rounded text-xs font-medium bg-zinc-800 text-zinc-300">
-                  {e.rule_name}
-                </span>
+                <span className="sketch-border-light px-2 py-0.5 text-xs font-medium bg-cream-dark">{e.rule_name}</span>
               </td>
               <td className="py-2 pr-4">
                 {e.triggered ? (
-                  <span className="px-1.5 py-0.5 rounded text-xs bg-red-900/50 text-red-400">TRIGGERED</span>
+                  <span className="px-1.5 py-0.5 text-xs font-medium bg-red-light text-red sketch-border-light">TRIGGERED</span>
                 ) : (
-                  <span className="px-1.5 py-0.5 rounded text-xs bg-emerald-900/50 text-emerald-400">PASS</span>
+                  <span className="px-1.5 py-0.5 text-xs font-medium bg-green-light text-green sketch-border-light">PASS</span>
                 )}
               </td>
               <td className="py-2 pr-4 text-right font-mono text-xs">{e.current_value.toFixed(4)}</td>
               <td className="py-2 pr-4 text-right font-mono text-xs">{e.threshold.toFixed(4)}</td>
-              <td className="py-2 pr-4 text-xs text-zinc-400">{e.action}</td>
-              <td className="py-2 text-xs text-zinc-500 max-w-xs truncate">{e.details}</td>
+              <td className="py-2 pr-4 text-xs text-ink-light">{e.action}</td>
+              <td className="py-2 text-xs text-ink-lighter max-w-xs truncate">{e.details}</td>
             </tr>
           ))}
           {events.length === 0 && (
-            <tr>
-              <td colSpan={7} className="py-8 text-center text-zinc-600">No risk events yet</td>
-            </tr>
+            <tr><td colSpan={7} className="py-8 text-center text-ink-lighter font-hand text-lg">No risk events yet...</td></tr>
           )}
         </tbody>
       </table>

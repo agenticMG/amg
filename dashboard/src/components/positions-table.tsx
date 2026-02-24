@@ -32,17 +32,14 @@ export function PositionsTable() {
   };
 
   useEffect(load, []);
-
-  useEffect(() => {
-    if (lastMessage?.type === "trade") load();
-  }, [lastMessage]);
+  useEffect(() => { if (lastMessage?.type === "trade") load(); }, [lastMessage]);
 
   const renderTable = (positions: Position[], title: string) => (
-    <div>
-      <h3 className="text-sm font-medium text-zinc-400 mb-3">{title}</h3>
-      <table className="w-full text-sm mb-6">
+    <div className="mb-8">
+      <h3 className="font-hand text-xl font-semibold mb-3">{title}</h3>
+      <table className="w-full text-sm">
         <thead>
-          <tr className="text-left text-xs text-zinc-500 uppercase tracking-wider border-b border-zinc-800">
+          <tr className="text-left text-xs text-ink-lighter uppercase tracking-wider border-b-2 border-dashed border-ink-faint">
             <th className="pb-2 pr-4">Market</th>
             <th className="pb-2 pr-4">Side</th>
             <th className="pb-2 pr-4 text-right">Size</th>
@@ -57,11 +54,11 @@ export function PositionsTable() {
         </thead>
         <tbody>
           {positions.map((p) => (
-            <tr key={p.id} className="border-b border-zinc-800/50 hover:bg-zinc-800/30">
-              <td className="py-2 pr-4 font-mono text-xs font-medium text-white">{p.market}</td>
+            <tr key={p.id} className="border-b border-dashed border-ink-faint/50 hover:bg-cream-dark/50">
+              <td className="py-2 pr-4 font-mono text-xs font-medium">{p.market}</td>
               <td className="py-2 pr-4">
-                <span className={`px-2 py-0.5 rounded text-xs font-medium ${
-                  p.side === "long" ? "bg-emerald-900/50 text-emerald-400" : "bg-red-900/50 text-red-400"
+                <span className={`px-2 py-0.5 text-xs font-medium sketch-border-light ${
+                  p.side === "long" ? "bg-green-light text-green" : "bg-red-light text-red"
                 }`}>
                   {p.side.toUpperCase()}
                 </span>
@@ -75,8 +72,8 @@ export function PositionsTable() {
                 </td>
               )}
               <td className="py-2 pr-4 text-right font-mono text-xs">${p.collateral.toFixed(2)}</td>
-              <td className={`py-2 pr-4 text-right font-mono text-xs ${
-                p.realized_pnl != null ? (p.realized_pnl >= 0 ? "text-emerald-400" : "text-red-400") : "text-zinc-600"
+              <td className={`py-2 pr-4 text-right font-mono text-xs font-medium ${
+                p.realized_pnl != null ? (p.realized_pnl >= 0 ? "text-green" : "text-red") : "text-ink-faint"
               }`}>
                 {p.realized_pnl != null ? `${p.realized_pnl >= 0 ? "+" : ""}$${p.realized_pnl.toFixed(2)}` : "-"}
               </td>
@@ -84,18 +81,16 @@ export function PositionsTable() {
                 {p.stop_loss_price != null ? `$${p.stop_loss_price.toFixed(2)}` : "-"}
               </td>
               <td className="py-2">
-                <span className={`px-1.5 py-0.5 rounded text-xs ${
-                  p.status === "open" ? "bg-blue-900/50 text-blue-400" :
-                  p.status === "liquidated" ? "bg-red-900/50 text-red-400" :
-                  "bg-zinc-800 text-zinc-400"
+                <span className={`px-1.5 py-0.5 text-xs font-medium sketch-border-light ${
+                  p.status === "open" ? "bg-accent-light text-accent" :
+                  p.status === "liquidated" ? "bg-red-light text-red" :
+                  "bg-cream-dark text-ink-lighter"
                 }`}>{p.status}</span>
               </td>
             </tr>
           ))}
           {positions.length === 0 && (
-            <tr>
-              <td colSpan={10} className="py-8 text-center text-zinc-600">No positions</td>
-            </tr>
+            <tr><td colSpan={10} className="py-8 text-center text-ink-lighter font-hand text-lg">No positions...</td></tr>
           )}
         </tbody>
       </table>

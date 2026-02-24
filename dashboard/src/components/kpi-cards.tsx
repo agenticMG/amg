@@ -22,10 +22,10 @@ function fmt(n: number, decimals = 2) {
 
 function Card({ label, value, sub, color }: { label: string; value: string; sub?: string; color?: string }) {
   return (
-    <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-4">
-      <p className="text-xs text-zinc-500 uppercase tracking-wider mb-1">{label}</p>
-      <p className={`text-2xl font-mono font-bold ${color || "text-white"}`}>{value}</p>
-      {sub && <p className="text-xs text-zinc-500 mt-1">{sub}</p>}
+    <div className="sketch-card bg-paper p-4">
+      <p className="text-xs text-ink-lighter uppercase tracking-wider font-semibold mb-1">{label}</p>
+      <p className={`text-2xl font-mono font-bold ${color || "text-ink"}`}>{value}</p>
+      {sub && <p className="text-xs text-ink-lighter mt-1">{sub}</p>}
     </div>
   );
 }
@@ -38,7 +38,6 @@ export function KpiCards() {
     fetch("/api/overview").then((r) => r.json()).then(setData);
   }, []);
 
-  // Refresh on new snapshots
   useEffect(() => {
     if (lastMessage?.type === "snapshot" || lastMessage?.type === "trade") {
       fetch("/api/overview").then((r) => r.json()).then(setData);
@@ -49,14 +48,14 @@ export function KpiCards() {
     return (
       <div className="grid grid-cols-5 gap-4">
         {Array.from({ length: 5 }).map((_, i) => (
-          <div key={i} className="bg-zinc-900 border border-zinc-800 rounded-lg p-4 h-24 animate-pulse" />
+          <div key={i} className="sketch-border-light bg-paper p-4 h-24 animate-pulse" />
         ))}
       </div>
     );
   }
 
   const pnlPct = data.snapshot?.daily_pnl_pct;
-  const pnlColor = (pnlPct ?? 0) >= 0 ? "text-emerald-400" : "text-red-400";
+  const pnlColor = (pnlPct ?? 0) >= 0 ? "text-green" : "text-red";
 
   return (
     <div className="grid grid-cols-5 gap-4">
@@ -81,7 +80,7 @@ export function KpiCards() {
         sub={`${data.tradesToday} trades today`}
       />
       <Card
-        label="Total Fees Claimed"
+        label="Fees Claimed"
         value={`$${fmt(data.totalFeesClaimed)}`}
       />
     </div>

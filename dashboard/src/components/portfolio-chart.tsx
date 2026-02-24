@@ -11,7 +11,6 @@ type Snapshot = {
 export function PortfolioChart() {
   const containerRef = useRef<HTMLDivElement>(null);
   const chartRef = useRef<unknown>(null);
-  const seriesRef = useRef<unknown>(null);
   const [snapshots, setSnapshots] = useState<Snapshot[]>([]);
   const { lastMessage } = useWs();
 
@@ -35,7 +34,6 @@ export function PortfolioChart() {
     import("lightweight-charts").then(({ createChart, ColorType, LineStyle }) => {
       if (cancelled || !containerRef.current) return;
 
-      // Dispose old chart
       if (chartRef.current) {
         (chartRef.current as { remove: () => void }).remove();
       }
@@ -45,25 +43,24 @@ export function PortfolioChart() {
         height: 300,
         layout: {
           background: { type: ColorType.Solid, color: "transparent" },
-          textColor: "#a1a1aa",
+          textColor: "#888",
           fontSize: 12,
+          fontFamily: "'JetBrains Mono', monospace",
         },
         grid: {
-          vertLines: { color: "#27272a" },
-          horzLines: { color: "#27272a" },
+          vertLines: { color: "#e5e5e5", style: LineStyle.Dashed },
+          horzLines: { color: "#e5e5e5", style: LineStyle.Dashed },
         },
-        timeScale: { timeVisible: true, secondsVisible: false },
-        rightPriceScale: {
-          borderColor: "#27272a",
-        },
+        timeScale: { timeVisible: true, secondsVisible: false, borderColor: "#ccc" },
+        rightPriceScale: { borderColor: "#ccc" },
         crosshair: {
-          horzLine: { style: LineStyle.Dashed },
-          vertLine: { style: LineStyle.Dashed },
+          horzLine: { style: LineStyle.Dashed, color: "#888" },
+          vertLine: { style: LineStyle.Dashed, color: "#888" },
         },
       });
 
       const series = chart.addLineSeries({
-        color: "#10b981",
+        color: "#1a1a1a",
         lineWidth: 2,
         priceFormat: { type: "price", precision: 2, minMove: 0.01 },
       });
@@ -75,9 +72,7 @@ export function PortfolioChart() {
 
       series.setData(chartData);
       chart.timeScale().fitContent();
-
       chartRef.current = chart;
-      seriesRef.current = series;
 
       const handleResize = () => {
         if (containerRef.current) {
@@ -88,18 +83,16 @@ export function PortfolioChart() {
       return () => window.removeEventListener("resize", handleResize);
     });
 
-    return () => {
-      cancelled = true;
-    };
+    return () => { cancelled = true; };
   }, [snapshots]);
 
   return (
-    <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-4">
-      <h2 className="text-sm font-medium text-zinc-400 mb-3">Portfolio Value</h2>
+    <div className="sketch-card bg-paper p-5">
+      <h2 className="font-hand text-xl font-semibold mb-3">Portfolio Value</h2>
       <div ref={containerRef} />
       {snapshots.length === 0 && (
-        <div className="h-[300px] flex items-center justify-center text-zinc-600 text-sm">
-          No data yet
+        <div className="h-[300px] flex items-center justify-center text-ink-lighter text-sm font-hand text-lg">
+          No data yet...
         </div>
       )}
     </div>

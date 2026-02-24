@@ -18,14 +18,14 @@ type Trade = {
   dry_run: boolean;
 };
 
-function SolscanLink({ sig }: { sig: string | null }) {
-  if (!sig) return <span className="text-zinc-600">-</span>;
+function TxLink({ sig }: { sig: string | null }) {
+  if (!sig) return <span className="text-ink-faint">-</span>;
   return (
     <a
       href={`https://solscan.io/tx/${sig}`}
       target="_blank"
       rel="noopener noreferrer"
-      className="text-blue-400 hover:text-blue-300 font-mono text-xs"
+      className="text-accent hover:underline font-mono text-xs"
     >
       {sig.slice(0, 8)}...
     </a>
@@ -51,7 +51,7 @@ export function TradesTable({ compact = false }: { compact?: boolean }) {
     <div className="overflow-x-auto">
       <table className="w-full text-sm">
         <thead>
-          <tr className="text-left text-xs text-zinc-500 uppercase tracking-wider border-b border-zinc-800">
+          <tr className="text-left text-xs text-ink-lighter uppercase tracking-wider border-b-2 border-dashed border-ink-faint">
             <th className="pb-2 pr-4">Time</th>
             <th className="pb-2 pr-4">Action</th>
             <th className="pb-2 pr-4">From</th>
@@ -64,12 +64,12 @@ export function TradesTable({ compact = false }: { compact?: boolean }) {
         </thead>
         <tbody>
           {trades.map((t) => (
-            <tr key={t.id} className="border-b border-zinc-800/50 hover:bg-zinc-800/30">
-              <td className="py-2 pr-4 font-mono text-xs text-zinc-400">
+            <tr key={t.id} className="border-b border-dashed border-ink-faint/50 hover:bg-cream-dark/50">
+              <td className="py-2 pr-4 font-mono text-xs text-ink-lighter">
                 {new Date(t.timestamp).toLocaleString()}
               </td>
               <td className="py-2 pr-4">
-                <span className="px-2 py-0.5 rounded text-xs font-medium bg-zinc-800 text-zinc-300">
+                <span className="sketch-border-light px-2 py-0.5 text-xs font-medium bg-cream-dark">
                   {t.action}
                 </span>
               </td>
@@ -82,30 +82,26 @@ export function TradesTable({ compact = false }: { compact?: boolean }) {
               <td className="py-2 pr-4 text-right font-mono text-xs">
                 {t.executed_price != null ? `$${t.executed_price.toFixed(4)}` : "-"}
               </td>
-              <td className={`py-2 pr-4 text-right font-mono text-xs ${
-                t.pnl != null ? (t.pnl >= 0 ? "text-emerald-400" : "text-red-400") : "text-zinc-600"
+              <td className={`py-2 pr-4 text-right font-mono text-xs font-medium ${
+                t.pnl != null ? (t.pnl >= 0 ? "text-green" : "text-red") : "text-ink-faint"
               }`}>
                 {t.pnl != null ? `${t.pnl >= 0 ? "+" : ""}$${t.pnl.toFixed(2)}` : "-"}
               </td>
-              <td className="py-2 pr-4">
-                <SolscanLink sig={t.tx_signature} />
-              </td>
+              <td className="py-2 pr-4"><TxLink sig={t.tx_signature} /></td>
               {!compact && (
                 <td className="py-2">
                   {t.dry_run && (
-                    <span className="px-1.5 py-0.5 rounded text-xs bg-yellow-900/50 text-yellow-400">DRY</span>
+                    <span className="px-1.5 py-0.5 text-xs font-medium bg-yellow-light text-yellow sketch-border-light">DRY</span>
                   )}
                   {!t.success && (
-                    <span className="px-1.5 py-0.5 rounded text-xs bg-red-900/50 text-red-400 ml-1">FAILED</span>
+                    <span className="px-1.5 py-0.5 text-xs font-medium bg-red-light text-red sketch-border-light ml-1">FAIL</span>
                   )}
                 </td>
               )}
             </tr>
           ))}
           {trades.length === 0 && (
-            <tr>
-              <td colSpan={compact ? 7 : 8} className="py-8 text-center text-zinc-600">No trades yet</td>
-            </tr>
+            <tr><td colSpan={compact ? 7 : 8} className="py-8 text-center text-ink-lighter font-hand text-lg">No trades yet...</td></tr>
           )}
         </tbody>
       </table>
