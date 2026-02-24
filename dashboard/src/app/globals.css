@@ -1,8 +1,8 @@
-@import url('https://fonts.googleapis.com/css2?family=Caveat:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Kalam:wght@300;400;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
 @import "tailwindcss";
 
 @theme {
-  --font-hand: 'Caveat', cursive;
+  --font-hand: 'Kalam', cursive;
   --font-sans: 'Inter', system-ui, sans-serif;
   --font-mono: 'JetBrains Mono', monospace;
 
@@ -64,8 +64,14 @@
 
 /* Marker highlight */
 .marker-highlight {
-  background: linear-gradient(180deg, transparent 60%, #fef08a 60%);
-  padding: 0 4px;
+  background: linear-gradient(178deg, transparent 50%, #fde68a 50%);
+  background-size: 100% 85%;
+  background-repeat: no-repeat;
+  padding: 0 0.15em;
+  margin: 0 -0.05em;
+  display: inline;
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
 }
 
 /* Slight rotation for playful feel */

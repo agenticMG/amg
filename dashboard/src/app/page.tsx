@@ -8,10 +8,46 @@ function ArrowRight() {
   );
 }
 
-function FeatureCard({ icon, title, desc, wonky }: { icon: string; title: string; desc: string; wonky: string }) {
+function EyeIcon() {
+  return (
+    <svg width="32" height="32" viewBox="0 0 32 32" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M2 16s5-10 14-10 14 10 14 10-5 10-14 10S2 16 2 16z" />
+      <circle cx="16" cy="16" r="4" />
+    </svg>
+  );
+}
+
+function BrainIcon() {
+  return (
+    <svg width="32" height="32" viewBox="0 0 32 32" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M16 4c-3 0-5.5 2-6 4.5C7.5 9 6 11 6 13.5c0 2 1 3.5 2.5 4.5-.5 1.5 0 3.5 1.5 4.5 1 .7 2.5 1 3.5.5.5 2 2.5 3.5 4.5 3.5" />
+      <path d="M16 4c3 0 5.5 2 6 4.5 2.5.5 4 2.5 4 5 0 2-1 3.5-2.5 4.5.5 1.5 0 3.5-1.5 4.5-1 .7-2.5 1-3.5.5-.5 2-2.5 3.5-4.5 3.5" />
+      <path d="M16 4v22" />
+    </svg>
+  );
+}
+
+function BoltIcon() {
+  return (
+    <svg width="32" height="32" viewBox="0 0 32 32" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M18 2L6 18h8l-2 12 12-16h-8L18 2z" />
+    </svg>
+  );
+}
+
+function ShieldIcon() {
+  return (
+    <svg width="32" height="32" viewBox="0 0 32 32" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M16 3L4 8v7c0 7.5 5 14 12 17 7-3 12-9.5 12-17V8L16 3z" />
+      <path d="M11 16l3 3 7-7" />
+    </svg>
+  );
+}
+
+function FeatureCard({ icon, title, desc, wonky }: { icon: React.ReactNode; title: string; desc: string; wonky: string }) {
   return (
     <div className={`sketch-card bg-paper p-6 ${wonky}`}>
-      <span className="font-hand text-4xl">{icon}</span>
+      <div className="text-ink">{icon}</div>
       <h3 className="font-hand text-2xl font-bold mt-3 mb-2">{title}</h3>
       <p className="text-ink-light text-sm leading-relaxed">{desc}</p>
     </div>
@@ -87,25 +123,25 @@ export default function HomePage() {
         </div>
         <div className="grid grid-cols-4 gap-6">
           <FeatureCard
-            icon="👁"
+            icon={<EyeIcon />}
             title="Observes"
             desc="Fetches real-time prices, market data, portfolio balances, and open positions from Solana."
             wonky="wonky-1"
           />
           <FeatureCard
-            icon="🧠"
+            icon={<BrainIcon />}
             title="Thinks"
             desc="Claude AI analyzes everything — market conditions, portfolio state, risk rules — and makes a trading decision."
             wonky="wonky-2"
           />
           <FeatureCard
-            icon="⚡"
+            icon={<BoltIcon />}
             title="Acts"
             desc="Executes spot swaps, opens/closes perp positions, and claims Meteora LP fees via Jupiter."
             wonky="wonky-3"
           />
           <FeatureCard
-            icon="🛡"
+            icon={<ShieldIcon />}
             title="Protects"
             desc="6 risk rules gate every trade: position limits, stop losses, leverage caps, loss cooldowns."
             wonky="wonky-1"
@@ -135,7 +171,7 @@ export default function HomePage() {
                 ["AI", "Claude (Anthropic)"],
                 ["Chain", "Solana"],
                 ["DEX", "Jupiter (swaps + perps)"],
-                ["LP", "Meteora DLMM"],
+                ["LP", "Meteora DAMM v2"],
                 ["Data", "Birdeye + Helius"],
                 ["Database", "PostgreSQL + Drizzle"],
                 ["Dashboard", "Next.js + Tailwind"],
