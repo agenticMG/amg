@@ -18,7 +18,7 @@ type Decision = {
 export function DecisionsTable({ compact = false }: { compact?: boolean }) {
   const [decisions, setDecisions] = useState<Decision[]>([]);
   const [expanded, setExpanded] = useState<Set<number>>(new Set());
-  const { lastMessage } = useWs();
+  const { update } = useWs();
   const limit = compact ? 5 : 50;
 
   useEffect(() => {
@@ -26,10 +26,10 @@ export function DecisionsTable({ compact = false }: { compact?: boolean }) {
   }, [limit]);
 
   useEffect(() => {
-    if (lastMessage?.type === "decision") {
-      setDecisions((prev) => [lastMessage.data as unknown as Decision, ...prev].slice(0, limit));
+    if (update?.decisions.length) {
+      setDecisions((prev) => [...(update.decisions as unknown as Decision[]), ...prev].slice(0, limit));
     }
-  }, [lastMessage, limit]);
+  }, [update, limit]);
 
   const toggle = (id: number) => {
     setExpanded((prev) => {

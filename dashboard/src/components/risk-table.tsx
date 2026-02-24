@@ -16,17 +16,17 @@ type RiskEvent = {
 
 export function RiskTable() {
   const [events, setEvents] = useState<RiskEvent[]>([]);
-  const { lastMessage } = useWs();
+  const { update } = useWs();
 
   useEffect(() => {
     fetch("/api/risk?limit=50").then((r) => r.json()).then(setEvents);
   }, []);
 
   useEffect(() => {
-    if (lastMessage?.type === "risk_event") {
-      setEvents((prev) => [lastMessage.data as unknown as RiskEvent, ...prev].slice(0, 50));
+    if (update?.risk_events.length) {
+      setEvents((prev) => [...(update.risk_events as unknown as RiskEvent[]), ...prev].slice(0, 50));
     }
-  }, [lastMessage]);
+  }, [update]);
 
   return (
     <div className="overflow-x-auto">

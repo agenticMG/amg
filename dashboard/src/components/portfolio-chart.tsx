@@ -12,7 +12,7 @@ export function PortfolioChart() {
   const containerRef = useRef<HTMLDivElement>(null);
   const chartRef = useRef<unknown>(null);
   const [snapshots, setSnapshots] = useState<Snapshot[]>([]);
-  const { lastMessage } = useWs();
+  const { update } = useWs();
 
   useEffect(() => {
     fetch("/api/portfolio-history?hours=72")
@@ -21,11 +21,12 @@ export function PortfolioChart() {
   }, []);
 
   useEffect(() => {
-    if (lastMessage?.type === "snapshot") {
-      const s = lastMessage.data as unknown as Snapshot;
-      setSnapshots((prev) => [...prev, s]);
+    if (update?.snapshots.length) {
+      // Reverse: API returns newest-first, chart needs chronological order
+      const newest = [...(update.snapshots as unknown as Snapshot[])].reverse();
+      setSnapshots((prev) => [...prev, ...newest]);
     }
-  }, [lastMessage]);
+  }, [update]);
 
   useEffect(() => {
     if (!containerRef.current || snapshots.length === 0) return;

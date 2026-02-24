@@ -19,7 +19,7 @@ type FeeClaim = {
 export function FeesTable() {
   const [claims, setClaims] = useState<FeeClaim[]>([]);
   const [totalClaimed, setTotalClaimed] = useState(0);
-  const { lastMessage } = useWs();
+  const { update } = useWs();
 
   useEffect(() => {
     fetch("/api/fees?limit=50").then((r) => r.json()).then((d: { claims: FeeClaim[]; totalClaimed: number }) => {
@@ -29,12 +29,12 @@ export function FeesTable() {
   }, []);
 
   useEffect(() => {
-    if (lastMessage?.type === "fee_claim") {
-      const fc = lastMessage.data as unknown as FeeClaim;
-      setClaims((prev) => [fc, ...prev].slice(0, 50));
-      setTotalClaimed((prev) => prev + fc.total_usd_value);
+    if (update?.fee_claims.length) {
+      const newClaims = update.fee_claims as unknown as FeeClaim[];
+      setClaims((prev) => [...newClaims, ...prev].slice(0, 50));
+      setTotalClaimed((prev) => prev + newClaims.reduce((sum, fc) => sum + fc.total_usd_value, 0));
     }
-  }, [lastMessage]);
+  }, [update]);
 
   return (
     <div>

@@ -33,19 +33,5 @@ services:
         condition: service_healthy
     restart: unless-stopped
 
-  dashboard:
-    build:
-      context: ./dashboard
-      dockerfile: Dockerfile
-    container_name: amg-dashboard
-    ports:
-      - "3001:3001"
-    environment:
-      - DATABASE_URL=postgresql://amg:amg_password@postgres:5432/amg
-    depends_on:
-      postgres:
-        condition: service_healthy
-    restart: unless-stopped
-
 volumes:
   pgdata:

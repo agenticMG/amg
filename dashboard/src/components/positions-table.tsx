@@ -22,7 +22,7 @@ type Position = {
 export function PositionsTable() {
   const [open, setOpen] = useState<Position[]>([]);
   const [closed, setClosed] = useState<Position[]>([]);
-  const { lastMessage } = useWs();
+  const { update } = useWs();
 
   const load = () => {
     fetch("/api/positions").then((r) => r.json()).then((d: { open: Position[]; closed: Position[] }) => {
@@ -32,7 +32,7 @@ export function PositionsTable() {
   };
 
   useEffect(load, []);
-  useEffect(() => { if (lastMessage?.type === "trade") load(); }, [lastMessage]);
+  useEffect(() => { if (update?.trades.length) load(); }, [update]);
 
   const renderTable = (positions: Position[], title: string) => (
     <div className="mb-8">

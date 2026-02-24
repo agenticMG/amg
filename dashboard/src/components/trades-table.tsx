@@ -34,7 +34,7 @@ function TxLink({ sig }: { sig: string | null }) {
 
 export function TradesTable({ compact = false }: { compact?: boolean }) {
   const [trades, setTrades] = useState<Trade[]>([]);
-  const { lastMessage } = useWs();
+  const { update } = useWs();
   const limit = compact ? 10 : 50;
 
   useEffect(() => {
@@ -42,10 +42,10 @@ export function TradesTable({ compact = false }: { compact?: boolean }) {
   }, [limit]);
 
   useEffect(() => {
-    if (lastMessage?.type === "trade") {
-      setTrades((prev) => [lastMessage.data as unknown as Trade, ...prev].slice(0, limit));
+    if (update?.trades.length) {
+      setTrades((prev) => [...(update.trades as unknown as Trade[]), ...prev].slice(0, limit));
     }
-  }, [lastMessage, limit]);
+  }, [update, limit]);
 
   return (
     <div className="overflow-x-auto">

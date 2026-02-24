@@ -32,17 +32,17 @@ function Card({ label, value, sub, color }: { label: string; value: string; sub?
 
 export function KpiCards() {
   const [data, setData] = useState<OverviewData | null>(null);
-  const { lastMessage } = useWs();
+  const { update } = useWs();
 
   useEffect(() => {
     fetch("/api/overview").then((r) => r.json()).then(setData);
   }, []);
 
   useEffect(() => {
-    if (lastMessage?.type === "snapshot" || lastMessage?.type === "trade") {
+    if (update?.snapshots.length || update?.trades.length) {
       fetch("/api/overview").then((r) => r.json()).then(setData);
     }
-  }, [lastMessage]);
+  }, [update]);
 
   if (!data) {
     return (
