@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { CopyAddress } from "@/components/copy-address";
 
 function ArrowRight() {
   return (
@@ -87,7 +88,7 @@ export default function HomePage() {
             makes decisions, executes trades, manages risk, and claims LP fees — all on its own,
             24/7, with every decision logged publicly.
           </p>
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-4 flex-wrap">
             <Link
               href="/dashboard"
               className="sketch-border bg-ink text-cream px-6 py-3 font-semibold text-sm hover:translate-x-[-1px] hover:translate-y-[-1px] transition-transform inline-block"
@@ -103,6 +104,9 @@ export default function HomePage() {
             >
               Read the Code
             </a>
+          </div>
+          <div className="mt-4">
+            <CopyAddress address="EFsyZj2aaaqQVUWbr8vdFmiac7MRPR1cjQaHTHR7amg" />
           </div>
         </div>
       </section>
