@@ -1,7 +1,9 @@
 import { Service, type IAgentRuntime } from "@elizaos/core";
-import { Connection, Keypair, PublicKey, SystemProgram, Transaction, type TransactionInstruction } from "@solana/web3.js";
+import { Connection, Keypair, PublicKey, SystemProgram, Transaction, sendAndConfirmTransaction } from "@solana/web3.js";
+import { getAssociatedTokenAddressSync, TOKEN_2022_PROGRAM_ID } from "@solana/spl-token";
+import { CpAmm, getTokenProgram } from "@meteora-ag/cp-amm-sdk";
 import bs58 from "bs58";
-import { createLogger, type LPPosition, type AddLiquidityParams, PROGRAM_IDS, withRetry } from "@amg/shared";
+import { createLogger, type LPPosition, type AddLiquidityParams, withRetry } from "@amg/shared";
 
 const log = createLogger("meteora-service");
 
@@ -11,6 +13,7 @@ export class MeteoraService extends Service {
 
   private connection!: Connection;
   private wallet!: Keypair;
+  private cpAmm!: CpAmm;
   private poolAddress?: PublicKey;
   private positionAddress?: PublicKey;
   private dryRun = true;
@@ -19,6 +22,7 @@ export class MeteoraService extends Service {
     const service = new MeteoraService();
     const rpcUrl = runtime.getSetting("SOLANA_RPC_URL") as string || "https://api.mainnet-beta.solana.com";
     service.connection = new Connection(rpcUrl, "confirmed");
+    service.cpAmm = new CpAmm(service.connection);
 
     const privateKey = runtime.getSetting("SOLANA_PRIVATE_KEY") as string;
     if (privateKey) {
@@ -40,6 +44,7 @@ export class MeteoraService extends Service {
     log.info({
       pool: poolAddr || "not configured",
       position: posAddr || "not configured",
+      wallet: service.wallet?.publicKey?.toBase58() || "not configured",
       dryRun: service.dryRun,
     }, "Meteora service started");
 
@@ -58,25 +63,63 @@ export class MeteoraService extends Service {
     }
 
     return withRetry(async () => {
-      log.info({ pool: this.poolAddress!.toBase58() }, "Claiming fees...");
+      log.info({
+        pool: this.poolAddress!.toBase58(),
+        position: this.positionAddress!.toBase58(),
+      }, "Claiming fees via CpAmm SDK...");
 
-      // Use the Meteora DAMM v2 program to build the claim instruction
-      // The actual CpAmm SDK would be used here in production
-      // For now we build the instruction manually using the program ID
-      const programId = new PublicKey(PROGRAM_IDS.METEORA_DAMM_V2);
+      // 1. Fetch pool state for vault/mint/flag info
+      const poolState = await this.cpAmm.fetchPoolState(this.poolAddress!);
+      log.info({
+        tokenAMint: poolState.tokenAMint.toBase58(),
+        tokenBMint: poolState.tokenBMint.toBase58(),
+      }, "Pool state fetched");
 
-      // This is a placeholder - in production, you'd use @meteora-ag/cp-amm-sdk
-      // to build the actual claim transaction
-      const tx = await this.buildClaimFeesTransaction(programId);
+      // 2. Fetch position state to get the NFT mint
+      const positionState = await this.cpAmm.fetchPositionState(this.positionAddress!);
 
-      if (tx) {
-        const txSignature = await this.connection.sendTransaction(tx, [this.wallet]);
-        await this.connection.confirmTransaction(txSignature, "confirmed");
-        log.info({ txSignature }, "Fees claimed successfully");
-        return { txSignature, tokenAAmount: 0, tokenBAmount: 0 };
-      }
+      // 3. Derive the position NFT token account (Token-2022)
+      const positionNftAccount = getAssociatedTokenAddressSync(
+        positionState.nftMint,
+        this.wallet.publicKey,
+        true,
+        TOKEN_2022_PROGRAM_ID,
+      );
 
-      return { tokenAAmount: 0, tokenBAmount: 0 };
+      log.info({
+        nftMint: positionState.nftMint.toBase58(),
+        nftAccount: positionNftAccount.toBase58(),
+      }, "Position NFT resolved");
+
+      // 4. Build the claim fee transaction
+      const claimTx = await this.cpAmm.claimPositionFee({
+        owner: this.wallet.publicKey,
+        receiver: this.wallet.publicKey,
+        pool: this.poolAddress!,
+        position: this.positionAddress!,
+        positionNftAccount,
+        tokenAVault: poolState.tokenAVault,
+        tokenBVault: poolState.tokenBVault,
+        tokenAMint: poolState.tokenAMint,
+        tokenBMint: poolState.tokenBMint,
+        tokenAProgram: getTokenProgram(poolState.tokenAFlag),
+        tokenBProgram: getTokenProgram(poolState.tokenBFlag),
+      });
+
+      // 5. Set fee payer and blockhash
+      claimTx.feePayer = this.wallet.publicKey;
+      claimTx.recentBlockhash = (await this.connection.getLatestBlockhash()).blockhash;
+
+      // 6. Send and confirm
+      const txSignature = await sendAndConfirmTransaction(
+        this.connection,
+        claimTx,
+        [this.wallet],
+        { commitment: "confirmed" },
+      );
+
+      log.info({ txSignature }, "Fees claimed successfully");
+      return { txSignature, tokenAAmount: 0, tokenBAmount: 0 };
     }, { label: "claim-fees", maxRetries: 2 });
   }
 
@@ -87,8 +130,6 @@ export class MeteoraService extends Service {
     }
 
     log.info({ params }, "Adding liquidity...");
-
-    // Placeholder for actual LP add via @meteora-ag/cp-amm-sdk
     return {};
   }
 
@@ -98,21 +139,14 @@ export class MeteoraService extends Service {
     }
 
     try {
-      // Fetch on-chain position data
-      // In production, use @meteora-ag/cp-amm-sdk to parse the position account
-      const accountInfo = await this.connection.getAccountInfo(this.positionAddress);
+      const poolState = await this.cpAmm.fetchPoolState(this.poolAddress);
+      const positionState = await this.cpAmm.fetchPositionState(this.positionAddress);
 
-      if (!accountInfo) {
-        log.warn("LP position account not found");
-        return null;
-      }
-
-      // Placeholder return — real implementation would parse the account data
       return {
         poolAddress: this.poolAddress.toBase58(),
         positionAddress: this.positionAddress.toBase58(),
         tokenA: {
-          mint: "",
+          mint: poolState.tokenAMint.toBase58(),
           symbol: "A",
           amount: 0,
           uiAmount: 0,
@@ -120,7 +154,7 @@ export class MeteoraService extends Service {
           decimals: 9,
         },
         tokenB: {
-          mint: "",
+          mint: poolState.tokenBMint.toBase58(),
           symbol: "B",
           amount: 0,
           uiAmount: 0,
@@ -136,13 +170,6 @@ export class MeteoraService extends Service {
       log.error({ err }, "Failed to get position status");
       return null;
     }
-  }
-
-  private async buildClaimFeesTransaction(_programId: PublicKey): Promise<any> {
-    // In production, this would use @meteora-ag/cp-amm-sdk
-    // CpAmmSdk.claimPositionFee()
-    log.warn("Claim fees transaction builder not yet connected to CpAmm SDK");
-    return null;
   }
 
   async getWalletSolBalance(): Promise<number> {
@@ -165,8 +192,12 @@ export class MeteoraService extends Service {
       }),
     );
 
-    const sig = await this.connection.sendTransaction(tx, [this.wallet]);
-    await this.connection.confirmTransaction(sig, "confirmed");
+    const sig = await sendAndConfirmTransaction(
+      this.connection,
+      tx,
+      [this.wallet],
+      { commitment: "confirmed" },
+    );
     log.info({ sig, to: toPubkey.toBase58(), solAmount }, "SOL transfer confirmed");
     return sig;
   }
