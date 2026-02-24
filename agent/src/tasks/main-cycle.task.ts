@@ -1,6 +1,7 @@
 import type { IAgentRuntime, TaskWorker, Task } from "@elizaos/core";
 import { createLogger, type TradeDecision, type PortfolioState, type MarketOverview, type MarketAnalysis, type RiskAssessment, type TradeAction } from "@amg/shared";
 import { buildDecisionPrompt, parseDecisionResponse } from "../prompts/decision.prompt.js";
+import { PublicKey } from "@solana/web3.js";
 import Anthropic from "@anthropic-ai/sdk";
 
 const log = createLogger("main-cycle");
@@ -37,12 +38,32 @@ export const mainCycleWorker: TaskWorker = {
         try {
           const meteoraService = runtime.getService(SVC.METEORA) as any;
           if (meteoraService) {
+            // Snapshot SOL balance before claim
+            const solBefore = await meteoraService.getWalletSolBalance();
+
             if (dryRun) {
               log.info("[DRY_RUN] Would claim fees from Meteora LP positions");
             } else {
               await meteoraService.claimAllFees();
             }
             lastFeeClaimTime = now;
+
+            // Transfer 50% of claimed SOL to distribution wallet
+            const distroWalletPubkey = runtime.getSetting("DISTRIBUTION_WALLET_PUBKEY") as string;
+            if (distroWalletPubkey && !dryRun) {
+              const solAfter = await meteoraService.getWalletSolBalance();
+              const delta = solAfter - solBefore;
+              if (delta > 0.001) {
+                const halfDelta = delta / 2;
+                log.info({ delta, halfDelta }, "Transferring 50% of claimed SOL to distribution wallet");
+                const sig = await meteoraService.transferSol(new PublicKey(distroWalletPubkey), halfDelta);
+                log.info({ sig, amount: halfDelta }, "Distribution wallet transfer complete");
+              } else {
+                log.info({ delta }, "Claimed SOL delta too small, skipping distribution transfer");
+              }
+            } else if (distroWalletPubkey && dryRun) {
+              log.info("[DRY_RUN] Would transfer 50% of claimed SOL to distribution wallet");
+            }
           } else {
             log.warn("Meteora service not available, skipping fee claim");
           }

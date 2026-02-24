@@ -130,6 +130,7 @@ async function main() {
             DAILY_LOSS_LIMIT_PCT: process.env.DAILY_LOSS_LIMIT_PCT,
             MIN_SOL_BALANCE: process.env.MIN_SOL_BALANCE,
             COOLDOWN_AFTER_LOSSES: process.env.COOLDOWN_AFTER_LOSSES,
+            DISTRIBUTION_WALLET_PUBKEY: process.env.DISTRIBUTION_WALLET_PUBKEY,
           },
         },
       ],

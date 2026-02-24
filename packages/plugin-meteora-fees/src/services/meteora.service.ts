@@ -1,5 +1,5 @@
 import { Service, type IAgentRuntime } from "@elizaos/core";
-import { Connection, Keypair, PublicKey, type TransactionInstruction } from "@solana/web3.js";
+import { Connection, Keypair, PublicKey, SystemProgram, Transaction, type TransactionInstruction } from "@solana/web3.js";
 import bs58 from "bs58";
 import { createLogger, type LPPosition, type AddLiquidityParams, PROGRAM_IDS, withRetry } from "@amg/shared";
 
@@ -143,6 +143,32 @@ export class MeteoraService extends Service {
     // CpAmmSdk.claimPositionFee()
     log.warn("Claim fees transaction builder not yet connected to CpAmm SDK");
     return null;
+  }
+
+  async getWalletSolBalance(): Promise<number> {
+    const lamports = await this.connection.getBalance(this.wallet.publicKey);
+    return lamports / 1e9;
+  }
+
+  async transferSol(toPubkey: PublicKey, solAmount: number): Promise<string | null> {
+    if (this.dryRun) {
+      log.info({ to: toPubkey.toBase58(), solAmount }, "[DRY_RUN] Would transfer SOL");
+      return null;
+    }
+
+    const lamports = Math.floor(solAmount * 1e9);
+    const tx = new Transaction().add(
+      SystemProgram.transfer({
+        fromPubkey: this.wallet.publicKey,
+        toPubkey,
+        lamports,
+      }),
+    );
+
+    const sig = await this.connection.sendTransaction(tx, [this.wallet]);
+    await this.connection.confirmTransaction(sig, "confirmed");
+    log.info({ sig, to: toPubkey.toBase58(), solAmount }, "SOL transfer confirmed");
+    return sig;
   }
 
   async stop() {

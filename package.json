@@ -12,7 +12,8 @@
     "dev": "bun run --filter 'agent' dev",
     "db:generate": "bun run --filter 'plugin-portfolio-tracker' db:generate",
     "db:migrate": "bun run --filter 'plugin-portfolio-tracker' db:migrate",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "distribute": "bun run scripts/distribute.ts"
   },
   "devDependencies": {
     "typescript": "^5.7.0",

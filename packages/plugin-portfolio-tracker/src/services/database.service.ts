@@ -11,6 +11,8 @@ import {
   PerpPositionsRepository,
   DecisionsRepository,
   RiskEventsRepository,
+  DistributionsRepository,
+  DistributionRecipientsRepository,
 } from "../repositories/index.js";
 
 const log = createLogger("database-service");
@@ -27,6 +29,8 @@ export class DatabaseService extends Service {
   perpPositions!: PerpPositionsRepository;
   decisions!: DecisionsRepository;
   riskEvents!: RiskEventsRepository;
+  distributions!: DistributionsRepository;
+  distributionRecipients!: DistributionRecipientsRepository;
 
   static async start(runtime: IAgentRuntime): Promise<DatabaseService> {
     const service = new DatabaseService();
@@ -46,6 +50,8 @@ export class DatabaseService extends Service {
     service.perpPositions = new PerpPositionsRepository(service.db);
     service.decisions = new DecisionsRepository(service.db);
     service.riskEvents = new RiskEventsRepository(service.db);
+    service.distributions = new DistributionsRepository(service.db);
+    service.distributionRecipients = new DistributionRecipientsRepository(service.db);
 
     log.info("Database service started");
     return service;
@@ -132,6 +138,29 @@ export class DatabaseService extends Service {
         dry_run BOOLEAN NOT NULL DEFAULT FALSE
       );
 
+      CREATE TABLE IF NOT EXISTS distributions (
+        id SERIAL PRIMARY KEY,
+        timestamp TIMESTAMP NOT NULL DEFAULT NOW(),
+        total_sol_distributed REAL NOT NULL,
+        total_recipients INTEGER NOT NULL,
+        distro_balance_before REAL NOT NULL,
+        distro_balance_after REAL NOT NULL,
+        status TEXT NOT NULL DEFAULT 'pending',
+        error TEXT,
+        tx_signatures JSONB
+      );
+
+      CREATE TABLE IF NOT EXISTS distribution_recipients (
+        id SERIAL PRIMARY KEY,
+        distribution_id INTEGER NOT NULL,
+        recipient_wallet TEXT NOT NULL,
+        token_balance REAL NOT NULL,
+        token_share_pct REAL NOT NULL,
+        sol_amount REAL NOT NULL,
+        tx_signature TEXT,
+        status TEXT NOT NULL DEFAULT 'pending'
+      );
+
       CREATE TABLE IF NOT EXISTS risk_events (
         id SERIAL PRIMARY KEY,
         timestamp TIMESTAMP NOT NULL DEFAULT NOW(),
@@ -157,6 +186,11 @@ export class DatabaseService extends Service {
       CREATE INDEX IF NOT EXISTS agent_decisions_action_idx ON agent_decisions (action);
       CREATE INDEX IF NOT EXISTS risk_events_timestamp_idx ON risk_events (timestamp);
       CREATE INDEX IF NOT EXISTS risk_events_rule_idx ON risk_events (rule_name);
+      CREATE INDEX IF NOT EXISTS distributions_timestamp_idx ON distributions (timestamp);
+      CREATE INDEX IF NOT EXISTS distributions_status_idx ON distributions (status);
+      CREATE INDEX IF NOT EXISTS dist_recipients_dist_id_idx ON distribution_recipients (distribution_id);
+      CREATE INDEX IF NOT EXISTS dist_recipients_wallet_idx ON distribution_recipients (recipient_wallet);
+      CREATE INDEX IF NOT EXISTS dist_recipients_status_idx ON distribution_recipients (status);
     `);
 
     log.info("Tables and indexes created");

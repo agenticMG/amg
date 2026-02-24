@@ -97,6 +97,38 @@ export const agentDecisions = pgTable("agent_decisions", {
   index("agent_decisions_action_idx").on(table.action),
 ]);
 
+// Distribution runs
+export const distributions = pgTable("distributions", {
+  id: serial("id").primaryKey(),
+  timestamp: timestamp("timestamp").notNull().defaultNow(),
+  totalSolDistributed: real("total_sol_distributed").notNull(),
+  totalRecipients: integer("total_recipients").notNull(),
+  distroBalanceBefore: real("distro_balance_before").notNull(),
+  distroBalanceAfter: real("distro_balance_after").notNull(),
+  status: text("status").notNull().default("pending"),  // pending / completed / failed
+  error: text("error"),
+  txSignatures: jsonb("tx_signatures"),  // string[]
+}, (table) => [
+  index("distributions_timestamp_idx").on(table.timestamp),
+  index("distributions_status_idx").on(table.status),
+]);
+
+// Distribution recipients (one row per recipient per distribution)
+export const distributionRecipients = pgTable("distribution_recipients", {
+  id: serial("id").primaryKey(),
+  distributionId: integer("distribution_id").notNull(),
+  recipientWallet: text("recipient_wallet").notNull(),
+  tokenBalance: real("token_balance").notNull(),
+  tokenSharePct: real("token_share_pct").notNull(),
+  solAmount: real("sol_amount").notNull(),
+  txSignature: text("tx_signature"),
+  status: text("status").notNull().default("pending"),  // pending / sent / failed
+}, (table) => [
+  index("dist_recipients_dist_id_idx").on(table.distributionId),
+  index("dist_recipients_wallet_idx").on(table.recipientWallet),
+  index("dist_recipients_status_idx").on(table.status),
+]);
+
 // Risk events (triggered rules)
 export const riskEvents = pgTable("risk_events", {
   id: serial("id").primaryKey(),
