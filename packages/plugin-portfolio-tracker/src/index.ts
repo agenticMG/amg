@@ -48,3 +48,4 @@ export { DatabaseService } from "./services/database.service.js";
 export { BalanceService } from "./services/balance.service.js";
 export * from "./schema.js";
 export * from "./repositories/index.js";
+export { snapshotWorker } from "./tasks/snapshot.task.js";

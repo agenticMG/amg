@@ -2,6 +2,7 @@ import { ElizaOS, type Project, type ProjectAgent, type IAgentRuntime } from "@e
 import { createLogger } from "@amg/shared";
 import { amgCharacter } from "./character.js";
 import { mainCycleWorker } from "./tasks/main-cycle.task.js";
+import { snapshotWorker } from "@amg/plugin-portfolio-tracker";
 
 import elizaPluginSql, { createDatabaseAdapter } from "@elizaos/plugin-sql";
 import { portfolioTrackerPlugin } from "@amg/plugin-portfolio-tracker";
@@ -40,6 +41,11 @@ const amgAgent: ProjectAgent = {
         await mainCycleWorker.execute(runtime, {}, {} as any);
       } catch (err) {
         log.error({ err }, "Main cycle execution failed");
+      }
+      try {
+        await snapshotWorker.execute(runtime, {}, {} as any);
+      } catch (err) {
+        log.error({ err }, "Portfolio snapshot failed");
       }
     };
 
