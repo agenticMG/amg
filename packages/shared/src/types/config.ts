@@ -50,7 +50,7 @@ export function loadConfig(): AppConfig {
     },
     jupiter: {
       apiKey: env("JUPITER_API_KEY", "86a2564b-34e7-47a9-b6ba-6d99852ea252"),
-      ultraUrl: env("JUPITER_ULTRA_URL", "https://lite.jup.ag/ultra/v1"),
+      ultraUrl: env("JUPITER_ULTRA_URL", "https://api.jup.ag/ultra/v1"),
     },
     birdeye: {
       apiKey: env("BIRDEYE_API_KEY", ""),

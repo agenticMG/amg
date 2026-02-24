@@ -23,18 +23,23 @@ export const meteoraFeesPlugin: Plugin = {
 
     runtime.registerTaskWorker(feeMonitorWorker);
 
-    const existingTasks = await runtime.getTasksByName("METEORA_FEE_MONITOR");
-    if (existingTasks.length === 0) {
-      await runtime.createTask({
-        name: "METEORA_FEE_MONITOR",
-        description: "Monitor LP fee accumulation",
-        tags: ["queue", "repeat"],
-        metadata: {
-          updateInterval: 300_000, // 5 minutes
-        },
-      });
-      log.info("Created fee monitor recurring task");
-    }
+    setTimeout(async () => {
+      try {
+        const existingTasks = await runtime.getTasksByName("METEORA_FEE_MONITOR");
+        if (existingTasks.length === 0) {
+          await runtime.createTask({
+            name: "METEORA_FEE_MONITOR",
+            description: "Monitor LP fee accumulation",
+            tags: ["queue", "repeat"],
+            metadata: { updateInterval: 300_000 },
+            worldId: runtime.agentId,
+          });
+          log.info("Created fee monitor recurring task");
+        }
+      } catch (err) {
+        log.warn({ err }, "Deferred task creation failed");
+      }
+    }, 2000);
 
     log.info("Meteora fees plugin initialized");
   },

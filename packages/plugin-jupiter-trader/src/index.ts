@@ -18,21 +18,25 @@ export const jupiterTraderPlugin: Plugin = {
   init: async (_config: Record<string, string>, runtime: IAgentRuntime) => {
     log.info("Initializing Jupiter trader plugin...");
 
-    // Register perp monitor task
     runtime.registerTaskWorker(perpMonitorWorker);
 
-    const existingTasks = await runtime.getTasksByName("PERP_POSITION_MONITOR");
-    if (existingTasks.length === 0) {
-      await runtime.createTask({
-        name: "PERP_POSITION_MONITOR",
-        description: "Monitor open perp positions and enforce stop-losses (30s interval)",
-        tags: ["queue", "repeat"],
-        metadata: {
-          updateInterval: DEFAULTS.PERP_MONITOR_INTERVAL_MS,
-        },
-      });
-      log.info("Created perp monitor recurring task (30s)");
-    }
+    setTimeout(async () => {
+      try {
+        const existingTasks = await runtime.getTasksByName("PERP_POSITION_MONITOR");
+        if (existingTasks.length === 0) {
+          await runtime.createTask({
+            name: "PERP_POSITION_MONITOR",
+            description: "Monitor open perp positions and enforce stop-losses (30s interval)",
+            tags: ["queue", "repeat"],
+            metadata: { updateInterval: DEFAULTS.PERP_MONITOR_INTERVAL_MS },
+            worldId: runtime.agentId,
+          });
+          log.info("Created perp monitor recurring task (30s)");
+        }
+      } catch (err) {
+        log.warn({ err }, "Deferred task creation failed");
+      }
+    }, 2000);
 
     log.info("Jupiter trader plugin initialized");
   },

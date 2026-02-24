@@ -19,18 +19,23 @@ export const marketIntelligencePlugin: Plugin = {
 
     runtime.registerTaskWorker(priceFeedWorker);
 
-    const existingTasks = await runtime.getTasksByName("MARKET_PRICE_FEED");
-    if (existingTasks.length === 0) {
-      await runtime.createTask({
-        name: "MARKET_PRICE_FEED",
-        description: "Periodic price feed updates",
-        tags: ["queue", "repeat"],
-        metadata: {
-          updateInterval: DEFAULTS.PRICE_FEED_INTERVAL_MS,
-        },
-      });
-      log.info("Created price feed recurring task");
-    }
+    setTimeout(async () => {
+      try {
+        const existingTasks = await runtime.getTasksByName("MARKET_PRICE_FEED");
+        if (existingTasks.length === 0) {
+          await runtime.createTask({
+            name: "MARKET_PRICE_FEED",
+            description: "Periodic price feed updates",
+            tags: ["queue", "repeat"],
+            metadata: { updateInterval: DEFAULTS.PRICE_FEED_INTERVAL_MS },
+            worldId: runtime.agentId,
+          });
+          log.info("Created price feed recurring task");
+        }
+      } catch (err) {
+        log.warn({ err }, "Deferred task creation failed");
+      }
+    }, 2000);
 
     log.info("Market intelligence plugin initialized");
   },

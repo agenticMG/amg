@@ -18,22 +18,26 @@ export const portfolioTrackerPlugin: Plugin = {
   init: async (_config: Record<string, string>, runtime: IAgentRuntime) => {
     log.info("Initializing portfolio tracker plugin...");
 
-    // Register snapshot task worker
     runtime.registerTaskWorker(snapshotWorker);
 
-    // Create recurring snapshot task
-    const existingTasks = await runtime.getTasksByName("PORTFOLIO_SNAPSHOT");
-    if (existingTasks.length === 0) {
-      await runtime.createTask({
-        name: "PORTFOLIO_SNAPSHOT",
-        description: "Take periodic portfolio snapshots",
-        tags: ["queue", "repeat"],
-        metadata: {
-          updateInterval: DEFAULTS.SNAPSHOT_INTERVAL_MS,
-        },
-      });
-      log.info("Created portfolio snapshot recurring task");
-    }
+    // Defer task creation until adapter is fully ready
+    setTimeout(async () => {
+      try {
+        const existingTasks = await runtime.getTasksByName("PORTFOLIO_SNAPSHOT");
+        if (existingTasks.length === 0) {
+          await runtime.createTask({
+            name: "PORTFOLIO_SNAPSHOT",
+            description: "Take periodic portfolio snapshots",
+            tags: ["queue", "repeat"],
+            metadata: { updateInterval: DEFAULTS.SNAPSHOT_INTERVAL_MS },
+            worldId: runtime.agentId,
+          });
+          log.info("Created portfolio snapshot recurring task");
+        }
+      } catch (err) {
+        log.warn({ err }, "Deferred task creation failed (adapter may not be ready)");
+      }
+    }, 2000);
 
     log.info("Portfolio tracker plugin initialized");
   },
