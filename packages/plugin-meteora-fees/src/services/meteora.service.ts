@@ -1,6 +1,6 @@
 import { Service, type IAgentRuntime } from "@elizaos/core";
 import { Connection, Keypair, PublicKey, SystemProgram, Transaction, sendAndConfirmTransaction } from "@solana/web3.js";
-import { getAssociatedTokenAddressSync, TOKEN_2022_PROGRAM_ID } from "@solana/spl-token";
+
 import { CpAmm, getTokenProgram } from "@meteora-ag/cp-amm-sdk";
 import bs58 from "bs58";
 import { createLogger, type LPPosition, type AddLiquidityParams, withRetry } from "@amg/shared";
@@ -78,13 +78,18 @@ export class MeteoraService extends Service {
       // 2. Fetch position state to get the NFT mint
       const positionState = await this.cpAmm.fetchPositionState(this.positionAddress!);
 
-      // 3. Derive the position NFT token account (Token-2022)
-      const positionNftAccount = getAssociatedTokenAddressSync(
-        positionState.nftMint,
+      // 3. Find the actual position NFT token account on-chain
+      const nftAccounts = await this.connection.getTokenAccountsByOwner(
         this.wallet.publicKey,
-        true,
-        TOKEN_2022_PROGRAM_ID,
+        { mint: positionState.nftMint },
+        "confirmed",
       );
+
+      if (nftAccounts.value.length === 0) {
+        throw new Error(`Position NFT ${positionState.nftMint.toBase58()} not found in wallet ${this.wallet.publicKey.toBase58()}`);
+      }
+
+      const positionNftAccount = nftAccounts.value[0].pubkey;
 
       log.info({
         nftMint: positionState.nftMint.toBase58(),
@@ -94,7 +99,6 @@ export class MeteoraService extends Service {
       // 4. Build the claim fee transaction
       const claimTx = await this.cpAmm.claimPositionFee({
         owner: this.wallet.publicKey,
-        receiver: this.wallet.publicKey,
         pool: this.poolAddress!,
         position: this.positionAddress!,
         positionNftAccount,

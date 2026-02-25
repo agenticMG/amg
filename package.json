@@ -19,5 +19,11 @@
     "typescript": "^5.7.0",
     "tsup": "^8.3.0",
     "@types/node": "^22.10.0"
+  },
+  "dependencies": {
+    "@solana/web3.js": "^1.98.4",
+    "bs58": "^6.0.0",
+    "drizzle-orm": "^0.45.1",
+    "postgres": "^3.4.8"
   }
 }
