@@ -1,7 +1,7 @@
 import sql from "./db";
 
 export async function getOverview() {
-  const [latestSnapshot, todayStats, openPositions, totalFees, totalDistributed] = await Promise.all([
+  const [latestSnapshot, todayStats, openPositions, totalDistributed] = await Promise.all([
     sql`SELECT * FROM portfolio_snapshots ORDER BY timestamp DESC LIMIT 1`,
     sql`
       SELECT
@@ -10,7 +10,6 @@ export async function getOverview() {
       FROM trades
     `,
     sql`SELECT COUNT(*) as count FROM perp_positions WHERE status = 'open'`,
-    sql`SELECT COALESCE(SUM(total_usd_value), 0) as total FROM fee_claims`,
     sql`SELECT COALESCE(SUM(total_sol_distributed), 0) as total FROM distributions WHERE status = 'completed'`,
   ]);
 
@@ -19,7 +18,6 @@ export async function getOverview() {
     tradesToday: Number(todayStats[0].trades_today),
     pnlToday: Number(todayStats[0].pnl_today),
     openPositions: Number(openPositions[0].count),
-    totalFeesClaimed: Number(totalFees[0].total),
     totalSolDistributed: Number(totalDistributed[0].total),
   };
 }

@@ -114,7 +114,9 @@ Based on the above data, decide your next action. You MUST respond with ONLY a v
 
 Important:
 - If risk assessment says trading is NOT allowed, you MUST choose HOLD.
-- Be conservative. Only trade when confidence > 0.6.
+- You are an ACTIVE trader. Look for opportunities and take them. Only HOLD if there is genuinely nothing worth trading.
+- Trade when confidence > 0.35. You don't need to be highly certain — small edges compound over time.
+- Prefer small, frequent trades over waiting for perfect setups.
 - Consider gas costs: keep at least 0.5 SOL for transactions.
 - Perp stop-losses are enforced client-side, so always specify stopLossPrice for new positions.`;
 }
