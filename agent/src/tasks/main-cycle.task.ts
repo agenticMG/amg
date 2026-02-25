@@ -42,12 +42,38 @@ export const mainCycleWorker: TaskWorker = {
             // Snapshot SOL balance before claim
             const solBefore = await meteoraService.getWalletSolBalance();
 
+            let claimResult: { txSignature?: string; tokenAAmount: number; tokenBAmount: number } | null = null;
             if (dryRun) {
               log.info("[DRY_RUN] Would claim fees from Meteora LP positions");
             } else {
-              await meteoraService.claimAllFees();
+              claimResult = await meteoraService.claimAllFees();
             }
             lastFeeClaimTime = now;
+
+            // Record fee claim in DB
+            if (claimResult?.txSignature) {
+              const dbSvc = runtime.getService(SVC.DATABASE) as any;
+              if (dbSvc?.feeClaims) {
+                try {
+                  const poolAddr = runtime.getSetting("METEORA_POOL_ADDRESS") as string || "";
+                  const posAddr = runtime.getSetting("METEORA_POSITION_ADDRESS") as string || "";
+                  await dbSvc.feeClaims.insert({
+                    poolAddress: poolAddr,
+                    positionAddress: posAddr,
+                    tokenAMint: "",
+                    tokenBMint: "",
+                    tokenAAmount: claimResult.tokenAAmount,
+                    tokenBAmount: claimResult.tokenBAmount,
+                    totalUsdValue: 0,
+                    txSignature: claimResult.txSignature,
+                    dryRun: false,
+                  });
+                  log.info({ tx: claimResult.txSignature }, "Fee claim recorded in DB");
+                } catch (dbErr) {
+                  log.error({ err: dbErr }, "Failed to record fee claim in DB");
+                }
+              }
+            }
 
             // Transfer 50% of claimed SOL to distribution wallet
             const distroWalletPubkey = runtime.getSetting("DISTRIBUTION_WALLET_PUBKEY") as string;
