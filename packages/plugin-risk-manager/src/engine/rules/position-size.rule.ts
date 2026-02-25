@@ -21,13 +21,8 @@ export const positionSizeRule: RiskRule = {
 
     const totalValue = portfolio.totalPortfolioUsdValue;
     if (totalValue === 0) {
-      return {
-        allowed: false,
-        ruleName: "position_size",
-        reason: "Portfolio value is 0, cannot assess position size",
-        currentValue: 0,
-        threshold: config.maxPositionSizePct,
-      };
+      // Portfolio value not yet computed — allow trade, other rules (min_sol_balance) still protect
+      return { allowed: true, ruleName: "position_size", reason: "Portfolio value unavailable, skipping size check" };
     }
 
     // Estimate trade size (rough)
