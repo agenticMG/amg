@@ -1,5 +1,5 @@
 import type { IAgentRuntime, TaskWorker, Task } from "@elizaos/core";
-import { createLogger, type TradeDecision, type PortfolioState, type MarketOverview, type MarketAnalysis, type RiskAssessment, type TradeAction } from "@amg/shared";
+import { createLogger, type TradeDecision, type TradeResult, type PortfolioState, type MarketOverview, type MarketAnalysis, type RiskAssessment, type TradeAction, TOKEN_BY_MINT } from "@amg/shared";
 import { buildDecisionPrompt, parseDecisionResponse } from "../prompts/decision.prompt.js";
 import { PublicKey } from "@solana/web3.js";
 import Anthropic from "@anthropic-ai/sdk";
@@ -225,27 +225,40 @@ export const mainCycleWorker: TaskWorker = {
 
       // Step 6: Execute
       log.info({ action: decision.action }, "Step 6: Executing decision...");
-      let txSignature: string | null = null;
+      let tradeResult: TradeResult = { success: false };
 
       if (decision.action === "HOLD") {
         log.info("Holding — no action taken");
+        tradeResult = { success: true };
       } else if (dryRun) {
         log.info({ action: decision.action, params: decision.params }, "[DRY_RUN] Would execute trade");
+        tradeResult = { success: true };
       } else {
-        txSignature = await executeDecision(runtime, decision);
+        tradeResult = await executeDecision(runtime, decision);
       }
 
-      // Step 7: Log
-      log.info("Step 7: Logging decision...");
+      // Step 7: Log decision + trade
+      log.info("Step 7: Logging decision and trade...");
       await recordDecision(
         dbService,
         decision.action,
         decision.confidence,
         decision.reasoning,
-        true,
-        txSignature,
+        tradeResult.success,
+        tradeResult.txSignature ?? null,
         dryRun,
       );
+
+      // Record trade in trades table (for dashboard display)
+      if (decision.action !== "HOLD" && dbService?.trades) {
+        try {
+          const tradeRow = buildTradeRow(decision, tradeResult, dryRun);
+          await dbService.trades.insert(tradeRow);
+          log.info({ action: decision.action, tx: tradeResult.txSignature }, "Trade recorded in DB");
+        } catch (tradeDbErr) {
+          log.error({ err: tradeDbErr }, "Failed to record trade in DB");
+        }
+      }
 
       const elapsed = Date.now() - startTime;
       log.info({ elapsed, action: decision.action }, "=== AMG Main Cycle Complete ===");
@@ -256,39 +269,79 @@ export const mainCycleWorker: TaskWorker = {
   },
 };
 
-async function executeDecision(runtime: IAgentRuntime, decision: TradeDecision): Promise<string | null> {
+async function executeDecision(runtime: IAgentRuntime, decision: TradeDecision): Promise<TradeResult> {
   const jupiterService = runtime.getService(SVC.JUPITER) as any;
   const meteoraService = runtime.getService(SVC.METEORA) as any;
 
   switch (decision.action) {
     case "SPOT_SWAP": {
       if (!jupiterService) throw new Error("Jupiter service not available");
-      const result = await jupiterService.swap(decision.params);
-      return result.txSignature ?? null;
+      return await jupiterService.swap(decision.params);
     }
     case "OPEN_PERP": {
       if (!jupiterService) throw new Error("Jupiter service not available");
-      const result = await jupiterService.openPerp(decision.params);
-      return result.txSignature ?? null;
+      return await jupiterService.openPerp(decision.params);
     }
     case "CLOSE_PERP": {
       if (!jupiterService) throw new Error("Jupiter service not available");
-      const result = await jupiterService.closePerp(decision.params);
-      return result.txSignature ?? null;
+      return await jupiterService.closePerp(decision.params);
     }
     case "ADJUST_PERP": {
       if (!jupiterService) throw new Error("Jupiter service not available");
-      const result = await jupiterService.adjustPerp(decision.params);
-      return result.txSignature ?? null;
+      return await jupiterService.adjustPerp(decision.params);
     }
     case "ADD_LIQUIDITY": {
       if (!meteoraService) throw new Error("Meteora service not available");
-      const result = await meteoraService.addLiquidity(decision.params);
-      return result.txSignature ?? null;
+      return await meteoraService.addLiquidity(decision.params);
     }
     default:
-      return null;
+      return { success: false, error: `Unknown action: ${decision.action}` };
   }
+}
+
+function buildTradeRow(decision: TradeDecision, result: TradeResult, dryRun: boolean) {
+  const params = decision.params as any;
+  let inputToken: string | null = null;
+  let outputToken: string | null = null;
+  let inputAmount: number | null = null;
+  let outputAmount: number | null = null;
+
+  if (decision.action === "SPOT_SWAP" && params) {
+    const inInfo = TOKEN_BY_MINT[params.inputMint];
+    const outInfo = TOKEN_BY_MINT[params.outputMint];
+    inputToken = inInfo?.symbol ?? params.inputMint?.slice(0, 8) ?? null;
+    outputToken = outInfo?.symbol ?? params.outputMint?.slice(0, 8) ?? null;
+    // Convert from smallest unit to UI amount
+    inputAmount = inInfo ? params.amount / (10 ** inInfo.decimals) : params.amount;
+    outputAmount = result.executedAmount != null && outInfo
+      ? result.executedAmount / (10 ** outInfo.decimals)
+      : result.executedAmount ?? null;
+  } else if (decision.action === "OPEN_PERP" && params) {
+    inputToken = "SOL";
+    outputToken = params.market ?? null;
+    inputAmount = params.collateralAmount ?? null;
+  } else if (decision.action === "CLOSE_PERP" && params) {
+    inputToken = params.market ?? null;
+    outputToken = "SOL";
+  } else if (decision.action === "ADD_LIQUIDITY" && params) {
+    inputToken = "LP Deposit";
+    inputAmount = (params.tokenAAmount ?? 0) + (params.tokenBAmount ?? 0);
+  }
+
+  return {
+    timestamp: new Date(),
+    action: decision.action,
+    inputToken,
+    outputToken,
+    inputAmount,
+    outputAmount,
+    executedPrice: result.executedPrice ?? null,
+    txSignature: result.txSignature ?? null,
+    reasoning: decision.reasoning,
+    success: result.success,
+    error: result.error ?? null,
+    dryRun,
+  };
 }
 
 async function recordDecision(
